@@ -23,7 +23,9 @@ export default function handler(
 
   const decodedAttestationObj = CBOR.decode(base64DecodedAttestationObj);
 
-  //const { authData } = decodedAttestationObj;
+  const { authData } = decodedAttestationObj;
+
+  //TODO: decode authData
 
   //   // get the length of the credential ID
   //   const dataView = new DataView(new ArrayBuffer(2));
