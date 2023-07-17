@@ -15,7 +15,7 @@ export default function handler(
   );
   const enc = new TextDecoder(); // always utf-8
   const clientDataObj = enc.decode(base64ClientDataObj);
-  console.log(clientDataObj);
+  //console.log(clientDataObj);
 
   const base64DecodedAttestationObj = base64url.decode(
     credential.response.attestationObject,
@@ -23,32 +23,35 @@ export default function handler(
 
   const decodedAttestationObj = CBOR.decode(base64DecodedAttestationObj);
 
+  //console.log(decodedAttestationObj);
   const { authData } = decodedAttestationObj;
 
-  //TODO: decode authData
+  // get the length of the credential ID
+  const dataView = new DataView(new ArrayBuffer(2));
+  const idLenBytes = authData.slice(53, 55);
+  idLenBytes.forEach((value: any, index: any) =>
+    dataView.setUint8(index, value),
+  );
 
-  //   // get the length of the credential ID
-  //   const dataView = new DataView(new ArrayBuffer(2));
-  //   const idLenBytes = authData.slice(53, 55);
-  //   idLenBytes.forEach((value: any, index: any) =>
-  //     dataView.setUint8(index, value),
-  //   );
-  //   const credentialIdLength = dataView.getUint16(2);
+  //@ts-ignore
+  const credentialIdLength = dataView.getUint16();
 
-  //   // get the credential ID
-  //   const credentialId = authData.slice(55, 55 + credentialIdLength);
+  // get the credential ID
+  const credentialId = authData.slice(55, 55 + credentialIdLength);
 
-  //   // get the public key object
-  //   const publicKeyBytes = authData.slice(55 + credentialIdLength);
+  // get the public key object
+  const publicKeyBytes = authData.slice(55 + credentialIdLength);
 
-  //   // the publicKeyBytes are encoded again as CBOR
-  //   const publicKeyObject = CBOR.decode(publicKeyBytes.buffer);
+  // the publicKeyBytes are encoded again as CBOR
+  const publicKeyObject = CBOR.decode(publicKeyBytes.buffer);
+  //console.log(publicKeyObject);
 
+  //DB to store publicKeyBytes and credentialId
   res.status(200).json({
     clientDataObj,
     decodedAttestationObj,
-    // credentialId: 'credentialId',
-    // publicKeyBytes: 'publicKeyBytes',
-    // publicKeyObject: 'publicKeyObject',
+    credentialId,
+    publicKeyBytes,
+    publicKeyObject,
   });
 }

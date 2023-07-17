@@ -21,34 +21,36 @@ function Demo1({ randomStringFromServer }: DemoProps) {
   const [publicKeyCredential, setPublicKeyCredential] = useState<
     Credential | undefined
   >();
+
+  const publicKeyCredentialCreationOptions = {
+    challenge: Uint8Array.from(randomStringFromServer, c => c.charCodeAt(0)),
+    rp: {
+      name: 'Acme Security',
+      id: 'localhost',
+    },
+    //the user that is currently registering.
+    user: {
+      id: Uint8Array.from('UZSL85T9AFC', c => c.charCodeAt(0)),
+      name: 'user@me.com',
+      displayName: 'Sagar',
+    },
+    pubKeyCredParams: [{ alg: -7, type: 'public-key' }],
+    authenticatorSelection: {
+      authenticatorAttachment: 'cross-platform',
+    },
+    //timeout in ms that describes how long the user has to respond to a challenge.
+    timeout: 60000,
+    //The attestation data that is returned from the authenticator has information that could be used to track users. This option allows servers to indicate how important the attestation data is to this registration event.
+    attestation: 'direct',
+  };
+
   const [respData, setRespData] = useState<ResponseData | undefined>();
 
   const getCredentials = async () => {
     const credential = (await navigator.credentials.create({
       //publicKey: publicKeyCredentialCreationOptions
-      publicKey: {
-        challenge: Uint8Array.from(randomStringFromServer, c =>
-          c.charCodeAt(0),
-        ),
-        rp: {
-          name: 'Acme Security',
-          id: 'localhost',
-        },
-        //the user that is currently registering.
-        user: {
-          id: Uint8Array.from('UZSL85T9AFC', c => c.charCodeAt(0)),
-          name: 'user@me.com',
-          displayName: 'Sagar',
-        },
-        pubKeyCredParams: [{ alg: -7, type: 'public-key' }],
-        authenticatorSelection: {
-          authenticatorAttachment: 'cross-platform',
-        },
-        //timeout in ms that describes how long the user has to respond to a challenge.
-        timeout: 60000,
-        //The attestation data that is returned from the authenticator has information that could be used to track users. This option allows servers to indicate how important the attestation data is to this registration event.
-        attestation: 'direct',
-      },
+      //@ts-ignore
+      publicKey: publicKeyCredentialCreationOptions,
     })) as RegistrationCredential;
     if (credential?.id) {
       setPublicKeyCredential(credential);
@@ -90,7 +92,51 @@ function Demo1({ randomStringFromServer }: DemoProps) {
       });
       const respData = await res.json();
       setRespData(respData);
+
+      //store the credentialsId to demo Sign in
+      localStorage.setItem('credentialId', window.btoa(respData.credentialId));
     }
+  };
+
+  const signIn = async () => {
+    const encodedCid = localStorage.getItem('credentialId') || '';
+    const decodedCid = window.atob(encodedCid);
+    // const publicKeyCredentialRequestOptions = {
+    //   ...publicKeyCredentialCreationOptions,
+    //   allowCredentials: [
+    //     {
+    //       //@ts-ignore
+    //       id: Uint8Array.from(decodedCid, c => c.charCodeAt(0)),
+    //       type: 'public-key',
+    //       transports: ['ble', 'nfc'],
+    //     },
+    //   ],
+    // };
+
+    const assertion = await navigator.credentials.get({
+      publicKey: publicKeyCredentialCreationOptions,
+    });
+    console.log(assertion);
+
+    /*
+    const storedCredential = await getCredentialFromDatabase(
+      userHandle,
+      decodedCid,
+    );
+
+    const signedData = authenticatorDataBytes + hashedClientDataJSON;
+
+    const signatureIsValid = storedCredential.publicKey.verify(
+      signature,
+      signedData,
+    );
+
+    if (signatureIsValid) {
+      return 'Hooray! User is authenticated! 🎉';
+    } else {
+      return 'Verification failed. 😭';
+    }
+    */
   };
 
   return (
@@ -98,7 +144,7 @@ function Demo1({ randomStringFromServer }: DemoProps) {
       <div>
         <button
           onClick={e => getCredentials()}
-          type="submit"
+          type="button"
           style={{
             margin: '0 auto',
             display: 'block',
@@ -109,9 +155,11 @@ function Demo1({ randomStringFromServer }: DemoProps) {
 
         <button
           style={{
-            margin: '0 auto',
+            margin: '1rem auto 0 auto',
             display: 'block',
           }}
+          type="button"
+          onClick={e => signIn()}
         >
           Sign in
         </button>
@@ -121,7 +169,7 @@ function Demo1({ randomStringFromServer }: DemoProps) {
         <div style={{ marginTop: '30px' }}>
           <CodeBlock
             language="javascript"
-            text={JSON.stringify(respData)}
+            text={JSON.stringify(respData, null, 4)}
             showLineNumbers={true}
             startingLineNumber={0}
             wrapLongLines={false}
