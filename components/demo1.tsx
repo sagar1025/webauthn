@@ -18,29 +18,38 @@ interface DemoProps {
 }
 
 function Demo1({ randomStringFromServer }: DemoProps) {
-  const [publicKeyCredential, setPublicKeyCredential] = useState<
-    Credential | undefined
-  >();
-
   const publicKeyCredentialCreationOptions = {
-    challenge: Uint8Array.from(randomStringFromServer, c => c.charCodeAt(0)),
     rp: {
       name: 'Acme Security',
       id: 'localhost',
     },
-    //the user that is currently registering.
+    // //the user that is currently registering.
+    // user: {
+    //   id: Uint8Array.from('UZSL85T9AFC', c => c.charCodeAt(0)),
+    //   name: 'user@me.com',
+    //   displayName: 'Sagar',
+    // },
+    // pubKeyCredParams: [{ alg: -7, type: 'public-key' }],
+    // authenticatorSelection: {
+    //   authenticatorAttachment: 'cross-platform',
+    // },
+    // //timeout in ms that describes how long the user has to respond to a challenge.
+    // timeout: 60000,
+    // //The attestation data that is returned from the authenticator has information that could be used to track users. This option allows servers to indicate how important the attestation data is to this registration event.
+    // attestation: 'direct',
+    challenge: Uint8Array.from(randomStringFromServer, c => c.charCodeAt(0)),
     user: {
       id: Uint8Array.from('UZSL85T9AFC', c => c.charCodeAt(0)),
-      name: 'user@me.com',
-      displayName: 'Sagar',
+      name: 'abcd@webauthn.guide',
+      displayName: 'Lee',
     },
     pubKeyCredParams: [{ alg: -7, type: 'public-key' }],
     authenticatorSelection: {
+      //authenticatorAttachment: 'webauthn-platform',
       authenticatorAttachment: 'cross-platform',
+      requireResidentKey: true,
     },
-    //timeout in ms that describes how long the user has to respond to a challenge.
     timeout: 60000,
-    //The attestation data that is returned from the authenticator has information that could be used to track users. This option allows servers to indicate how important the attestation data is to this registration event.
     attestation: 'direct',
   };
 
@@ -48,12 +57,10 @@ function Demo1({ randomStringFromServer }: DemoProps) {
 
   const getCredentials = async () => {
     const credential = (await navigator.credentials.create({
-      //publicKey: publicKeyCredentialCreationOptions
       //@ts-ignore
       publicKey: publicKeyCredentialCreationOptions,
     })) as RegistrationCredential;
     if (credential?.id) {
-      setPublicKeyCredential(credential);
       console.log(credential);
       const rawId = base64url.encode(credential.rawId);
       const clientDataJSON = base64url.encode(
@@ -93,29 +100,38 @@ function Demo1({ randomStringFromServer }: DemoProps) {
       const respData = await res.json();
       setRespData(respData);
 
+      console.log(respData.credentialId);
       //store the credentialsId to demo Sign in
-      localStorage.setItem('credentialId', window.btoa(respData.credentialId));
+      localStorage.setItem('credentialId', respData.credentialId);
     }
   };
 
   const signIn = async () => {
-    const encodedCid = localStorage.getItem('credentialId') || '';
-    const decodedCid = window.atob(encodedCid);
+    //const encodedCid = localStorage.getItem('credentialId') || '';
+
     // const publicKeyCredentialRequestOptions = {
-    //   ...publicKeyCredentialCreationOptions,
+    //   challenge: Uint8Array.from('some randome thing', c => c.charCodeAt(0)),
     //   allowCredentials: [
     //     {
-    //       //@ts-ignore
-    //       id: Uint8Array.from(decodedCid, c => c.charCodeAt(0)),
+    //       id: base64url.decode(encodedCid),
     //       type: 'public-key',
-    //       transports: ['ble', 'nfc'],
+    //       //transports: ['ble', 'nfc'],
     //     },
     //   ],
+    //   authenticatorSelection: {
+    //     //authenticatorAttachment: 'webauthn-platform',
+    //     authenticatorAttachment: 'cross-platform',
+    //     requireResidentKey: true,
+    //   },
+    //   timeout: 60000,
     // };
 
     const assertion = await navigator.credentials.get({
       publicKey: publicKeyCredentialCreationOptions,
     });
+    // const assertion = await navigator.credentials.get({
+    //   publicKey: publicKeyCredentialRequestOptions,
+    // });
     console.log(assertion);
 
     /*
@@ -161,7 +177,7 @@ function Demo1({ randomStringFromServer }: DemoProps) {
           type="button"
           onClick={e => signIn()}
         >
-          Sign in
+          CLICK ME TO AUTHENTICATE!
         </button>
       </div>
 

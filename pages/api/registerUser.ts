@@ -50,7 +50,7 @@ export default function handler(
   res.status(200).json({
     clientDataObj,
     decodedAttestationObj,
-    credentialId,
+    credentialId: base64url.encode(credentialId),
     publicKeyBytes,
     publicKeyObject,
   });
