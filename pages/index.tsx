@@ -1,25 +1,24 @@
-import Head from 'next/head'
-import { Inter } from 'next/font/google'
-import styles from '@/styles/Home.module.css'
-import Demo1 from '@/components/demo1'
-import { GetServerSideProps, InferGetServerSidePropsType } from 'next'
-import dynamic from 'next/dynamic'
+import Head from 'next/head';
+import { Inter } from 'next/font/google';
+import styles from '@/styles/Home.module.css';
+import Demo1 from '@/components/demo1';
+import { GetServerSideProps, InferGetServerSidePropsType } from 'next';
+import dynamic from 'next/dynamic';
+import Auth from '@/components/Auth';
 
-const inter = Inter({ subsets: ['latin'] })
+const inter = Inter({ subsets: ['latin'] });
 
 export const getServerSideProps: GetServerSideProps<{
-  randomStringFromServer: string
+  randomStringFromServer: string;
 }> = async () => {
-  const res = await fetch(`http://localhost:3000/api/initWebAuthn`)
-  const randomStringFromServer = await res.json()
-  return { props: { randomStringFromServer } }
-}
+  const res = await fetch(`http://localhost:3000/api/initWebAuthn`);
+  const randomStringFromServer = await res.json();
+  return { props: { randomStringFromServer } };
+};
 
 function Home({
   randomStringFromServer,
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
-
-
   return (
     <>
       <Head>
@@ -28,13 +27,13 @@ function Home({
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <main className={`${styles.main} ${inter.className}`}>
-        <Demo1 randomStringFromServer={randomStringFromServer} />
+      <main className="h-screen w-screen">
+        <Auth randomStringFromServer={randomStringFromServer} />
       </main>
     </>
-  )
+  );
 }
 
 export default dynamic(() => Promise.resolve(Home), {
-  ssr: false
-})
+  ssr: false,
+});
