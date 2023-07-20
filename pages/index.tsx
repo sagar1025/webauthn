@@ -12,8 +12,8 @@ export const getServerSideProps: GetServerSideProps<{
   randomStringFromServer: string;
 }> = async () => {
   const res = await fetch(`http://localhost:3000/api/initWebAuthn`);
-  const randomStringFromServer = await res.json();
-  return { props: { randomStringFromServer } };
+  const { randomString } = await res.json();
+  return { props: { randomStringFromServer: randomString } };
 };
 
 function Home({
